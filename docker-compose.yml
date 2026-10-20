@@ -1,0 +1,34 @@
+services:
+  chroma:
+    image: chromadb/chroma:1.5.9
+    container_name: moodle_rag_chroma
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8001:8000"
+    volumes:
+      - chroma_data:/data
+    environment:
+      IS_PERSISTENT: "True"
+      PERSIST_DIRECTORY: /data
+    command: run --path /data --host 0.0.0.0 --port 8000
+
+  app:
+    build: .
+    container_name: moodle_rag_app
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+    environment:
+      CHROMA_HOST: chroma
+      CHROMA_PORT: 8000
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  chroma_data:
