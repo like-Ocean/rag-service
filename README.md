@@ -2,7 +2,7 @@
 
 Бэкенд по ТЗ: FastAPI принимает запросы от PHP-плагинов Moodle, делает ETL → поиск (dense + BM25 + RRF) → генерацию (Ollama локально / OpenRouter для отладки).
 
-## Структура (как в AI_Classes)
+## Структура
 
 - `main.py` — точка входа, lifespan, CORS, префикс `/api`
 - `core/` — `config.py` (настройки из `.env`), `security.py` (токен Moodle↔API), `chroma.py` (клиент + коллекция `moodle_docs`)
