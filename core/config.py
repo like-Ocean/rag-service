@@ -1,3 +1,4 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,6 +14,7 @@ class Settings(BaseSettings):
     APP_LOG_LEVEL: str = "debug"
 
     SERVICE_TOKEN: str = "change-me"
+    ADMIN_SERVICE_TOKEN: str = ""
 
     CHROMA_HOST: str = "127.0.0.1"
     CHROMA_PORT: int = 8001
@@ -33,10 +35,17 @@ class Settings(BaseSettings):
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
     OPENROUTER_MODEL: str = "qwen/qwen-2.5-7b-instruct"
 
-    TOP_K: int = 5
+    TOP_K: int = Field(default=5, ge=1)
     SEARCH_MODE: str = "hybrid"  # dense | bm25 | hybrid
-    CHUNK_SIZE: int = 800  # токенов, ТЗ рекомендует 500-1000
-    CHUNK_OVERLAP: int = 100
+    RERANKER_ENABLED: bool = False
+    RERANKER_MODEL: str = "BAAI/bge-reranker-v2-m3"
+    RERANKER_CANDIDATES: int = Field(default=20, ge=1)
+    CHUNK_STRATEGY: str = "semantic"  # recursive | semantic
+    CHUNK_SIZE: int = Field(default=800, ge=1)  # приблизительные токены
+    CHUNK_OVERLAP: int = Field(default=100, ge=0)  # приблизительные токены
+    CONTEXT_PER_CHUNK: int = Field(default=1200, ge=1)  # символов на чанк в промпте
+    FAITHFULNESS_CHECK_ENABLED: bool = False
+    RUNTIME_CONFIG_PATH: str = "data/runtime_config.json"
     RAG_PROMPT: str = (
         "Ты — ассистент преподавателя. Используй только следующий контекст "
         "для ответа на вопрос. Если ответа нет, напиши: 'У меня недостаточно "

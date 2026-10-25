@@ -1,5 +1,7 @@
+from datetime import date
 from typing import Literal
-from pydantic import BaseModel, Field
+
+from pydantic import BaseModel, Field, model_validator
 
 
 class IngestRequest(BaseModel):
@@ -8,6 +10,10 @@ class IngestRequest(BaseModel):
     title: str = ""
     author: str = ""
     file_url: str | None = Field(None, description="Moodle отдаёт файл ссылкой (pluginfile.php)")
+    filename: str | None = None
+    mime_type: str | None = None
+    publish_date: date | None = None
+    keywords: list[str] = Field(default_factory=list)
 
 
 class ChunkInfo(BaseModel):
@@ -26,8 +32,22 @@ class AskRequest(BaseModel):
     query: str = Field(..., min_length=3)
     course_id: str = Field(..., description="Проверен в PHP через is_enrolled(), не из браузера")
     user_id: str = ""
-    top_k: int | None = None
+    top_k: int | None = Field(default=None, ge=1)
     mode: Literal["dense", "bm25", "hybrid"] | None = None
+    author: str | None = None
+    publish_date_from: date | None = None
+    publish_date_to: date | None = None
+    keywords: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_publish_date_range(self):
+        if (
+            self.publish_date_from is not None
+            and self.publish_date_to is not None
+            and self.publish_date_from > self.publish_date_to
+        ):
+            raise ValueError("publish_date_from must be on or before publish_date_to")
+        return self
 
 
 class Source(BaseModel):
