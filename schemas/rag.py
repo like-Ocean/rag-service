@@ -3,6 +3,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
+from core.limits import MAX_ANSWER_SOURCES
+
 
 class IngestRequest(BaseModel):
     doc_id: str = Field(..., description="Устойчивый ID документа в Moodle")
@@ -32,7 +34,10 @@ class AskRequest(BaseModel):
     query: str = Field(..., min_length=3)
     course_id: str = Field(..., description="Проверен в PHP через is_enrolled(), не из браузера")
     user_id: str = ""
-    top_k: int | None = Field(default=None, ge=1)
+    top_k: int | None = Field(
+        default=None, ge=1,
+        description="Число фрагментов контекста; значения выше 16 ограничиваются до 16",
+    )
     mode: Literal["dense", "bm25", "hybrid"] | None = None
     author: str | None = None
     publish_date_from: date | None = None
@@ -58,7 +63,10 @@ class Source(BaseModel):
 
 class AskResponse(BaseModel):
     answer: str
-    sources: list[Source]
+    sources: list[Source] = Field(
+        max_length=MAX_ANSWER_SOURCES,
+        description="Только источники со ссылками [S#] в ответе, в порядке первого упоминания",
+    )
 
 
 class ErrorResponse(BaseModel):
